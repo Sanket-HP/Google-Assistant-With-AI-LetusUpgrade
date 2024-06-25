@@ -13,9 +13,8 @@ from IPython.display import Audio
 from google.colab import userdata
 import wave 
 
-# Set up OpenAI API key (replace with your actual API key)
 client = OpenAI(
-  api_key=userdata.get('api_key')
+  api_key=userdata.get('sk-proj-aI2xnzhdFad3CUyFzLcRT3BlbkFJvXBMGstu5NKThVQKs9c0')
 )
 
 # Function to convert text to speech
