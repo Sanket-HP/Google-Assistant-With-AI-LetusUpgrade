@@ -22,7 +22,7 @@ Getting Started
 
 ### Installation
 
-1. Clone this repository: `git clone https://github.com/your-username/google-assistant.git`
+1. Clone this repository: `git clone https://github.com/Sanket-HP/Google-Assistant-With-AI-LetusUpgrade.git`
 2. Install required libraries: `pip install -r requirements.txt`
 3. Set up your OpenAI API key in `app.py`
 
