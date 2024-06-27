@@ -1,75 +1,71 @@
-# -*- coding: utf-8 -*-
-"""Google Assistant with Speech Recognition and Text-to-Speech.ipynb
-
-This code provides a basic Google Assistant like experience by combining
-speech recognition, OpenAI's ChatGPT for natural language processing, and text-to-speech. 
-"""
-
+import tkinter as tk
+from tkinter import messagebox
 import speech_recognition as sr
 import pyttsx3
-from openai import OpenAI
-from gtts import gTTS
-from IPython.display import Audio
-from google.colab import userdata
-import wave 
+import openai
 
-client = OpenAI(
-  api_key=userdata.get('sk-proj-aI2xnzhdFad3CUyFzLcRT3BlbkFJvXBMGstu5NKThVQKs9c0')
-)
+# Initialize OpenAI API client
+openai.api_key = 'sk-proj-xzsdFyYDLc6Lo7S4pfgLT3BlbkFJ8b89jhqUVXQaTb5Mim6F'
 
-# Function to convert text to speech
+# Function to convert text to speech using pyttsx3
 def speakNow(text):
-  tts = gTTS(text, lang='en')  # Provide the string to convert to speech
-  tts.save('output.wav')  # save the string converted to speech as a .wav file
-  sound_file = 'output.wav'
-  Audio(sound_file, autoplay=True)
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
 
 # Function to get user input using speech recognition
 def getVoiceInput():
-  r = sr.Recognizer()
-  with sr.Microphone() as source:
-    print("Speak now...")
-    audio = r.listen(source)
-  
-  try:
-    text = r.recognize_google(audio)
-    print("You said: " + text)
-    return text
-  except sr.UnknownValueError:
-    print("Could not understand audio")
-  except sr.RequestError as e:
-    print("Could not request results; {0}".format(e))
-  return None
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Speak now...")
+        audio = recognizer.listen(source)
+
+    try:
+        text = recognizer.recognize_google(audio)
+        print("You said: " + text)
+        return text
+    except sr.UnknownValueError:
+        print("Could not understand audio")
+        return None
+    except sr.RequestError as e:
+        print(f"Could not request results; {e}")
+        return None
 
 # Function to ask ChatGPT
 def askGPT(user_text):
-  completion = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-      {"role": "system", "content": "You are a friendly and helpful chatbot."},
-      {"role": "user", "content": user_text}
-    ]
-  )
-  response_from_chatGPT = completion.choices[0].message.content
-  return response_from_chatGPT
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a friendly and helpful chatbot."},
+            {"role": "user", "content": user_text}
+        ]
+    )
+    response_from_chatGPT = response.choices[0].message['content']
+    return response_from_chatGPT
 
-# Function to process audio bytes
-def bytes_to_audio_simple(byte_data, output_file):
-    with wave.open(output_file, 'wb') as wave_file:
-        wave_file.setnchannels(1)  # Mono audio
-        wave_file.setsampwidth(2)  # 2 bytes per sample
-        wave_file.setframerate(44100)  # Standard audio sample rate
+# GUI Application
+class VoiceAssistantApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Voice Assistant")
 
-        wave_file.writeframes(byte_data)
+        self.label = tk.Label(root, text="Press the button and speak", font=("Helvetica", 14))
+        self.label.pack(pady=20)
 
-# Main loop
-while True:
-    user_input = getVoiceInput()
-    if user_input is not None:
-        response = askGPT(user_input)
-        speakNow(response)
-    
-    # Ask if the user wants to continue
-    should_continue = input("Want to ask another question? (y/n): ").lower()
-    if should_continue != 'y':
-        break
+        self.speak_button = tk.Button(root, text="Speak", command=self.process_speech, font=("Helvetica", 14))
+        self.speak_button.pack(pady=20)
+
+        self.quit_button = tk.Button(root, text="Quit", command=root.quit, font=("Helvetica", 14))
+        self.quit_button.pack(pady=20)
+
+    def process_speech(self):
+        user_input = getVoiceInput()
+        if user_input:
+            response = askGPT(user_input)
+            speakNow(response)
+            messagebox.showinfo("Assistant Response", response)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = VoiceAssistantApp(root)
+    root.mainloop()
